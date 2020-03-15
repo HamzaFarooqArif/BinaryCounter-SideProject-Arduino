@@ -209,9 +209,9 @@ void loadCounter()
 void writeToMemory()
 {
   digitalWrite(chipEnable, HIGH);
-  delay(1);
+  delay(10);
   digitalWrite(writeEnable, LOW);
-  delay(1);
+  delay(10);
   digitalWrite(writeEnable, HIGH);
 }
 
