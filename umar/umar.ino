@@ -1,3 +1,5 @@
+#include <EEPROM.h>
+
 //Global configuration
 int maxDevices = 15;
 int counter = 0;
@@ -14,8 +16,7 @@ int led3=6;
 int led4=7;
 
 //Rom Configuration
-int chipEnable = 8;
-int writeEnable = 9;
+int addr = 0;
 
 void toBinaryPins(int val)
 {
@@ -133,86 +134,19 @@ void toBinaryPins(int val)
   }
 }
 
-void loadCounter()
+int loadCounter()
 {
-  int ledRead1 = analogRead(A4);
-  int ledRead2 = analogRead(A3);
-  int ledRead3 = analogRead(A2);
-  int ledRead4 = analogRead(A1);
-
-  if(ledRead1 < threshold && ledRead2 < threshold && ledRead3 < threshold && ledRead4 < threshold)
+  int val = EEPROM.read(addr);
+  if(0 <= val && val <= maxDevices)
   {
-    counter = 0;
+    return val;
   }
-  else if(ledRead1 > threshold && ledRead2 < threshold && ledRead3 < threshold && ledRead4 < threshold)
-  {
-    counter = 1;
-  }
-  else if(ledRead1 < threshold && ledRead2 > threshold && ledRead3 < threshold && ledRead4 < threshold)
-  {
-    counter = 2;
-  }
-  else if(ledRead1 > threshold && ledRead2 > threshold && ledRead3 < threshold && ledRead4 < threshold)
-  {
-    counter = 3;
-  }
-  else if(ledRead1 < threshold && ledRead2 < threshold && ledRead3 > threshold && ledRead4 < threshold)
-  {
-    counter = 4;
-  }
-  else if(ledRead1 > threshold && ledRead2 < threshold && ledRead3 > threshold && ledRead4 < threshold)
-  {
-    counter = 5;
-  }
-  else if(ledRead1 < threshold && ledRead2 > threshold && ledRead3 > threshold && ledRead4 < threshold)
-  {
-    counter = 6;
-  }
-  else if(ledRead1 > threshold && ledRead2 > threshold && ledRead3 > threshold && ledRead4 < threshold)
-  {
-    counter = 7;
-  }
-  else if(ledRead1 < threshold && ledRead2 < threshold && ledRead3 < threshold && ledRead4 > threshold)
-  {
-    counter = 8;
-  }
-  else if(ledRead1 > threshold && ledRead2 < threshold && ledRead3 < threshold && ledRead4 > threshold)
-  {
-    counter = 9;
-  }
-  else if(ledRead1 < threshold && ledRead2 > threshold && ledRead3 < threshold && ledRead4 > threshold)
-  {
-    counter = 10;
-  }
-  else if(ledRead1 > threshold && ledRead2 > threshold && ledRead3 < threshold && ledRead4 > threshold)
-  {
-    counter = 11;
-  }
-  else if(ledRead1 < threshold && ledRead2 < threshold && ledRead3 > threshold && ledRead4 > threshold)
-  {
-    counter = 12;
-  }
-  else if(ledRead1 > threshold && ledRead2 < threshold && ledRead3 > threshold && ledRead4 > threshold)
-  {
-    counter = 13;
-  }
-  else if(ledRead1 < threshold && ledRead2 > threshold && ledRead3 > threshold && ledRead4 > threshold)
-  {
-    counter = 14;
-  }
-  else if(ledRead1 > threshold && ledRead2 > threshold && ledRead3 > threshold && ledRead4 > threshold)
-  {
-    counter = 15;
-  }
+  return 0;
 }
 
-void writeToMemory()
+void writeToMemory(int val)
 {
-  digitalWrite(chipEnable, HIGH);
-  delay(10);
-  digitalWrite(writeEnable, LOW);
-  delay(10);
-  digitalWrite(writeEnable, HIGH);
+  EEPROM.write(addr, val);
 }
 
 void setup() {
@@ -226,10 +160,7 @@ void setup() {
   pinMode (led3, OUTPUT);
   pinMode (led4, OUTPUT);
   
-  pinMode (chipEnable, OUTPUT);
-  pinMode (writeEnable, OUTPUT);
-  
-  loadCounter();
+  counter = loadCounter();
 }
 
 void loop() {
@@ -254,7 +185,7 @@ void loop() {
   }
   
   toBinaryPins(counter);
-  writeToMemory();
+  writeToMemory(counter);
   
   //Serial.println(counter);
 }
