@@ -1,7 +1,7 @@
 #include <EEPROM.h>
 
 //Global configuration
-int maxDevices = 15;
+int maxDevices = 10;
 int counter = 0;
 
 //Sensor configuration
@@ -167,6 +167,11 @@ void loop() {
   mypulse = analogRead(A0);
   if(mypulse > threshold && !isPushed)
   {
+    isPushed = true;
+    digitalWrite(LED_BUILTIN, LOW);
+  }
+  if(mypulse < threshold && isPushed)
+  {
     if(counter < maxDevices)
     {
       counter++;  
@@ -175,17 +180,12 @@ void loop() {
     {
       counter = 1;
     }
-    isPushed = true;
-    digitalWrite(LED_BUILTIN, HIGH);
-  }
-  if(mypulse < threshold && isPushed)
-  {
     isPushed = false;
-    digitalWrite(LED_BUILTIN, LOW);
+    digitalWrite(LED_BUILTIN, HIGH);
   }
   
   toBinaryPins(counter);
   writeToMemory(counter);
   
-  //Serial.println(counter);
+  Serial.println(counter);
 }
