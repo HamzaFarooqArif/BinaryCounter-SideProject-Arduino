@@ -10,10 +10,10 @@ int mypulse = 0;
 bool isPushed = false;
 
 //Led pin configuration
-int led1=4;
-int led2=5;
-int led3=6;
-int led4=7;
+int led1=3;
+int led2=8;
+int led3=9;
+int led4=10;
 
 //Rom Configuration
 int addr = 0;
