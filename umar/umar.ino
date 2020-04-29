@@ -1,13 +1,15 @@
 #include <EEPROM.h>
+#include <LiquidCrystal.h>
+
+LiquidCrystal lcd(12, 11, 5, 4, 6, 2);
 
 //Global configuration
 int maxDevices = 10;
-int counter = 0;
 
 //Sensor configuration
 int threshold = 500;
-int mypulse = 0;
-bool isPushed = false;
+int sensorRead = 0;
+int reverseRead = 0;
 
 //Led pin configuration
 int led1=3;
@@ -17,6 +19,10 @@ int led4=10;
 
 //Rom Configuration
 int addr = 0;
+
+//Intermediate Variables
+bool isPushed = false;
+int counter = 0;
 
 void toBinaryPins(int val)
 {
@@ -149,43 +155,97 @@ void writeToMemory(int val)
   EEPROM.write(addr, val);
 }
 
-void setup() {
-  // put your setup code here, to run once:
-  Serial.begin(115200);
-
-  pinMode(LED_BUILTIN, OUTPUT);
+void updateCounter()
+{
+  sensorRead = analogRead(A0);
+  reverseRead = analogRead(A1);
   
-  pinMode (led1, OUTPUT);
-  pinMode (led2, OUTPUT);
-  pinMode (led3, OUTPUT);
-  pinMode (led4, OUTPUT);
-  
-  counter = loadCounter();
-}
-
-void loop() {
-  mypulse = analogRead(A0);
-  if(mypulse > threshold && !isPushed)
+  if(sensorRead > threshold && !isPushed)
   {
     isPushed = true;
     digitalWrite(LED_BUILTIN, LOW);
   }
-  if(mypulse < threshold && isPushed)
+  else if(sensorRead < threshold && isPushed)
   {
-    if(counter < maxDevices)
+    isPushed = false;
+    digitalWrite(LED_BUILTIN, HIGH);
+    varyCounter(reverseRead);
+  }
+}
+
+void varyCounter(int reverse)
+{
+  if(reverse > threshold)
+  {
+    if(counter == 1)
     {
-      counter++;  
+      counter = maxDevices;
     }
     else
     {
+      counter--;  
+    }
+  }
+  else
+  {
+    if(counter == maxDevices)
+    {
       counter = 1;
     }
-    isPushed = false;
-    digitalWrite(LED_BUILTIN, HIGH);
+    else
+    {
+      counter++;  
+    } 
   }
-  
+}
+
+void updateLcd()
+{
+  lcd.setCursor(8, 0);
+  if(counter < 10)
+  {
+    lcd.print("0");
+    lcd.print(counter);
+  }
+  else
+  {
+    lcd.print(counter);  
+  }
+  lcd.setCursor(8, 1);
+  if(reverseRead > threshold)
+  {
+    lcd.print(" TRUE");
+  }
+  else
+  {
+    lcd.print("FALSE");
+  }
+}
+
+void setup() {
+  Serial.begin(115200);
+  lcd.begin(16, 2);
+  pinMode(LED_BUILTIN, OUTPUT);
+  pinMode (led1, OUTPUT);
+  pinMode (led2, OUTPUT);
+  pinMode (led3, OUTPUT);
+  pinMode (led4, OUTPUT);
+  counter = loadCounter();
+
+  lcd.setCursor(0, 0);
+  lcd.print("Tool Controller");
+  delay(1000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("Counter:");
+  lcd.setCursor(0,1);
+  lcd.print("Reverse:");
+}
+
+void loop() {
+  updateCounter();
   toBinaryPins(counter);
   writeToMemory(counter);
-  
-  Serial.println(counter);
+  updateLcd();
+  //Serial.println(counter);
 }
